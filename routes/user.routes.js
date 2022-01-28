@@ -7,8 +7,10 @@ router.post('/register', authController.signUp);
 
 // voir tous les utilisateurs
 router.get('/', userController.getAllUsers);
+// voir un utilisateur
+router.get('/:id', userController.userInfo);
 
-router.get('/:id', userController.userInfo)
+router.put('/:id', userController.updateUser);
 
 
 module.exports = router;

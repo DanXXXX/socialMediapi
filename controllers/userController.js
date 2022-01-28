@@ -1,5 +1,5 @@
 const UserModel = require("../models/user.model");
-const ObjectId = require('mongoose').Types.ObjectId;
+const ObjectID = require('mongoose').Types.ObjectId;
 
 module.exports.getAllUsers = async (req, res) => {
     const users = await UserModel.find().select('-password');
@@ -8,7 +8,7 @@ module.exports.getAllUsers = async (req, res) => {
 
 module.exports.userInfo = (req, res) => {
     console.log(req.params);
-    if (!ObjectId.isValid(req.params.id)) {
+    if (!ObjectID.isValid(req.params.id)) {
         return res.status(400).send('ID unknom : ' + req.params.id)
     }
 
@@ -19,4 +19,43 @@ module.exports.userInfo = (req, res) => {
         console.error('ID unknom : ' + err); 
         }
     }).select('-password');
+}
+
+module.exports.updateUser = async (req, res) => {
+    if (!ObjectID.isValid(req.params.id)) {
+        return res.status(400).send('ID unknom : ' + req.params.id)
+    }
+    try {
+        // await UserModel.findOneByUpdate(
+        //     { _id: req.params.id },
+        //     {
+        //       $set: {
+        //         bio: req.body.bio,
+        //       },
+        //     },
+        //     { new: true, upsert: true, setDefaultsOnInsert: true },
+        //     (err, docs) => {
+        //       if (!err) return res.send(docs);
+        //       if (err) return res.status(500).send({ message: err });
+        //     }
+        //   );
+       await UserModel.findOneAndUpdate(
+         {_id: req.params.id },
+         {
+             $set: {
+                 bio: req.body.bio
+             },
+         },
+         { new: true, upsert: true, setDefaultsOnInsert: true}, 
+         (err, docs) => {
+             if (!err) {
+                 return res.send(docs);
+             }if (err) {
+                 return res.status(500).send({message: err});
+             }
+         }
+       )
+    } catch (err) {
+       return res.status(500).json({message: err});
+    };
 }
