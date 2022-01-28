@@ -1,31 +1,20 @@
 const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-var createError = require('http-errors');
-
-
-const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const userRoutes = require('./routes/user.routes')
+//  recherche dans le .env pour la connection à la base donnée
 require('dotenv').config({path: './config/.env'});
+//    recherche de l' adresse et la configuration dans db.js
 require('./config/db');
+const app = express();
+ 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extends: true}));
 
+// routes
+app.use('/api/user', userRoutes);
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const productRouter = require('./routes/productRoutes')
-const userRouter = require('./routes/userRoutes');
+// server connection à la base de donnée 
+app.listen(process.env.PORT, () =>{
+    console.log(`Listennig on port ${process.env.PORT}`);
+});
 
-const server = express();
-
-server.use(logger('dev'));
-server.use(express.json());
-server.use(express.urlencoded({ extended: false }));
-server.use(cookieParser());
-server.use(express.static(path.join(__dirname, 'public')));
-
-server.use('/', indexRouter);
-server.use('/users', usersRouter);
-server.use('/api/products', productRouter);
-server.use('/api/users', userRouter);
-
-module.exports = server;
