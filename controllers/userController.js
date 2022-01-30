@@ -14,9 +14,9 @@ module.exports.userInfo = (req, res) => {
 
     UserModel.findById(req.params.id, (err, docs) => {
         if (!err) {
-        res.send(docs); 
+            res.send(docs);
         } else {
-        console.error('ID unknom : ' + err); 
+            console.error('ID unknom : ' + err);
         }
     }).select('-password');
 }
@@ -26,25 +26,33 @@ module.exports.updateUser = async (req, res) => {
         return res.status(400).send('ID unknom : ' + req.params.id)
     }
     try {
-       
-       await UserModel.findOneAndUpdate(
-         {_id: req.params.id },
-         {
-             $set: {
-                 bio: req.body.bio
-             },
-         },
-         { new: true, upsert: true, setDefaultsOnInsert: true}, 
-         (err, docs) => {
-             if (!err) {
-                 return res.send(docs);
-             }if (err) {
-                 return res.status(500).send({message: err});
-             }
-         }
-       )
+
+        await UserModel.findOneAndUpdate({
+                _id: req.params.id
+            }, {
+                $set: {
+                    bio: req.body.bio
+                },
+            }, {
+                new: true,
+                upsert: true,
+                setDefaultsOnInsert: true
+            },
+            (err, docs) => {
+                if (!err) {
+                    return res.send(docs);
+                }
+                if (err) {
+                    return res.status(500).send({
+                        message: err
+                    });
+                }
+            }
+        )
     } catch (err) {
-       return res.status(500).json({message: err});
+        return res.status(500).json({
+            message: err
+        });
     };
 }
 
@@ -53,39 +61,55 @@ module.exports.deleteUser = async (req, res) => {
         return res.status(400).send('ID unknom : ' + req.params.id)
     }
     try {
-        await UserModel.remove({_id: req.params.id}).exec();
-        res.status(200).json({ message: "Successfully deleted. "});
+        await UserModel.remove({
+            _id: req.params.id
+        }).exec();
+        res.status(200).json({
+            message: "Successfully deleted. "
+        });
     } catch (err) {
-        return res.status(500).json({message: err});
+        return res.status(500).json({
+            message: err
+        });
     }
 }
 
 module.exports.follow = async (req, res) => {
-    if (!ObjectID.isValid(req.params.id)) {
+    if (!ObjectID.isValid(req.params.id) || !ObjectID.isValid(req.body.idToFollow)) {
         return res.status(400).send('ID unknom : ' + req.params.id)
-    } 
+    }
     try {
         // ajouter  dans la list follower 
         await UserModel.findByIdAndUpdate(
-            req.params.id,
-            { $addToSet: { following: req.body.idToFollow}},
-            {new: true, upsert: true},
+            req.params.id, {
+                $addToSet: {
+                    following: req.body.idToFollow
+                }
+            }, {
+                new: true,
+                upsert: true
+            },
             (err, docs) => {
                 if (!err) {
 
-                  return  res.status(201).json(docs);
+                    return res.status(201).json(docs);
 
                 } else {
 
-                  return  res.status(400).json(err);
+                    return res.status(400).json(err);
                 }
             }
         );
         // ajoute les gens qui la suive dans la list de followin 
         await UserModel.findByIdAndUpdate(
-            req.body.idToFollow,
-            {$addToSet: {followers: req.params.id }},
-            {new: true, upsert: true},
+            req.body.idToFollow, {
+                $addToSet: {
+                    followers: req.params.id
+                }
+            }, {
+                new: true,
+                upsert: true
+            },
             (err, docs) => {
                 // if (!err) {
 
@@ -95,22 +119,68 @@ module.exports.follow = async (req, res) => {
                 // else {
 
                 // }
-              if (err)  return  res.status(400).json(err);
+                if (err) return res.status(400).json(err);
             }
         );
 
     } catch (err) {
-        return res.status(500).json({message: err});
+        return res.status(500).json({
+            message: err
+        });
     }
 }
 
 module.exports.unfollow = async (req, res) => {
-    if (!ObjectID.isValid(req.params.id)) {
-        return res.status(400).send('ID unknom : ' + req.params.id)
-    } 
-    try {
-        
-    } catch (err) {
-        return res.status(500).json({message: err});
-    }
-}
+            if (!ObjectID.isValid(req.params.id) || !ObjectID.isValid(req.body.idToUnFollow)) {
+                return res.status(400).send('ID unknom : ' + req.params.id)
+            }
+            try {
+                // ajouter  dans la list follower 
+                await UserModel.findByIdAndUpdate(
+                    req.params.id, {
+                        $pull: {
+                            following: req.body.idToUnFollow
+                        }
+                    }, {
+                        new: true,
+                        upsert: true
+                    },
+                    (err, docs) => {
+                        if (!err) {
+
+                            return res.status(201).json(docs);
+
+                        } else {
+
+                            return res.status(400).json(err);
+                        }
+                    }
+                );
+                // ajoute les gens qui la suive dans la list de followin 
+                await UserModel.findByIdAndUpdate(
+                    req.body.idToUnFollow, {
+                        $pull: {
+                            followers: req.params.id
+                        }
+                    }, {
+                        new: true,
+                        upsert: true
+                    },
+                    (err, docs) => {
+                        // if (!err) {
+
+                        //   return  res.status(201).json(docs);
+
+                        // } 
+                        // else {
+
+                        // }
+                        if (err) return res.status(400).json(err);
+                    }
+                );
+            } catch (err) {
+                    return res.status(500).json({
+                        message: err
+                    });
+                }
+            }
