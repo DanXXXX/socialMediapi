@@ -181,6 +181,7 @@ module.exports.unfollow = async (req, res) => {
             } catch (err) {
                     return res.status(500).json({
                         message: err
+                        
                     });
                 }
             }

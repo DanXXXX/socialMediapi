@@ -25,7 +25,7 @@ var userSchema = new mongoose.Schema(
             type: String,
             required:true,
             max: 1024,
-            minLength: 6
+            minlength: 6
         },
         picture:{
             type: String,
